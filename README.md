@@ -35,6 +35,20 @@ For verbose output:
 uv run pytest -v
 ```
 
+### Code Quality
+
+```bash
+# Format: code/imports
+uv run ruff format .
+uv run ruff check --select I .
+
+# Lint: code
+uv run ruff check .
+
+# Run all checks
+uv run ruff check . && uv run ruff format --check . && uv run pyright
+```
+
 ## Project Structure
 
 - `test_celeriac.py` - Test files and main application functionality
