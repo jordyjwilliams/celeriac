@@ -1,0 +1,12 @@
+[project]
+name = "celeriac"
+version = "0.1.0"
+description = "A Python project created with UV"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = []
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+]
