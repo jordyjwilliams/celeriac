@@ -43,3 +43,12 @@ jobs:
     - name: Check Linting [ruff]
       run: uv run ruff check .
 
+    - name: Run Tests with Coverage
+      run: |
+        uv run pytest tests/ \
+          --cov=. \
+          --cov-report=xml \
+          --cov-report=term-missing \
+          --cov-fail-under=71 \
+          --junitxml=test-results.xml \
+          --tb=short
