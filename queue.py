@@ -1,7 +1,7 @@
+import logging
 
 from executor import MockTaskExecutor
 from tasks import CeleriacTask
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -11,7 +11,6 @@ class Celeriac:
         self.name = name
         self.tasks = {}
         self.client = MockTaskExecutor()
-
 
     def _name_from_func(self, func):
         return f"{func.__module__}${func.__name__}"

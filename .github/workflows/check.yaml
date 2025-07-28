@@ -1,0 +1,64 @@
+name: Check
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  format-typecheck-lint-test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      checks: write
+    strategy:
+      matrix:
+        # NOTE: only supported `py3.13` now. Left as matrix for future-proofing.
+        python-version: ["3.13"]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v2
+      with:
+        version: latest
+
+    - name: Install Dependencies [uv]
+      run: uv sync --extra dev
+
+    - name: Check Formatting [ruff]
+      run: uv run ruff format --check .
+
+    - name: Check Import Sorting [ruff]
+      run: uv run ruff check --select I .
+
+    - name: Check Linting [ruff]
+      run: uv run ruff check .
+
+    - name: Run Tests with Coverage
+      # NOTE: this is relatively low due to auth testing being excluded.
+      # Out of scope for now.
+      run: |
+        uv run pytest \
+          --cov=. \
+          --cov-report=xml \
+          --cov-report=term-missing \
+          --cov-fail-under=71 \
+          # NOTE: current rate on `main`. Bump after added implementation.
+          --junitxml=test-results.xml \
+          --tb=short
+
+    - name: Test Results
+      uses: EnricoMi/publish-unit-test-result-action@v2
+      with:
+        files: "test-results.xml"
+        comment_mode: always
+        compare_to_earlier_commit: true

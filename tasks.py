@@ -1,5 +1,5 @@
 import json
-from typing import Callable, TYPE_CHECKING
+from typing import TYPE_CHECKING, Callable
 
 if TYPE_CHECKING:
     from queue import Celeriac
@@ -18,7 +18,6 @@ class CeleriacTask:
 
     def __call__(self, *args, **kwargs):
         return self.func(*args, **kwargs)
-
 
     def serialize_call(self, *args, **kwargs) -> dict:
         base_result = {
