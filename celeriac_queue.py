@@ -10,6 +10,15 @@ from const import BATCH_MAX_TASK_NUMBER, BATCH_MAX_WAIT_TIME_MS
 logger = logging.getLogger(__name__)
 
 
+"""Considerations:
+- Use `culsans` for thread-safe (async) queue.
+    - From benchmarks faster than `janus` and `asyncio.queue`
+    https://github.com/x42005e1f/culsans?tab=readme-ov-file#performance
+    - Newer, and better maintained.
+    - Can support both sync and async use cases.
+    - `aiologic` could provide better performance. But is not inherently thread safe.
+"""
+
 class Celeriac:
     def __init__(self, name):
         self.name = name
