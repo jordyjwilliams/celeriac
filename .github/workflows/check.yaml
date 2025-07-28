@@ -34,3 +34,6 @@ jobs:
     - name: Install Dependencies [uv]
       run: uv sync --group dev
 
+    - name: Check Formatting [ruff]
+      run: uv run ruff format --check .
+
