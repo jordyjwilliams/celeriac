@@ -66,13 +66,22 @@ def test_multiple_tasks_buffered_until_batch_size():
         # Should not be called yet (still buffering)
         assert mock_receive_batch.call_count == 0
         
-        # Send the 20th task (should trigger batch send)
-        some_task_that_is_called_en_masse.delay(19, 20)
+        # Wait 200ms - tasks should be sent after this delay
+        time.sleep(0.2)
         
-        # Should be called once with exactly 20 tasks
+        # Should be called once with exactly 19 tasks after 200ms delay
         mock_receive_batch.assert_called_once()
         args, kwargs = mock_receive_batch.call_args
-        assert len(args[0]) == 20
+        assert len(args[0]) == 19
+        
+        # Send the 20th task (should trigger immediate batch send)
+        some_task_that_is_called_en_masse.delay(19, 20)
+        
+        # Should be called twice: once with 19 tasks (after delay), once with 1 task (immediate)
+        assert mock_receive_batch.call_count == 2
+        calls = mock_receive_batch.call_args_list
+        assert len(calls[0][0][0]) == 19  # First batch: 19 tasks (after delay)
+        assert len(calls[1][0][0]) == 1   # Second batch: 1 task (immediate)
 
 def test_batch_size_limit_enforced():
     """Test that batches never exceed 20 tasks."""
@@ -96,6 +105,12 @@ def test_tasks_sent_in_order():
         some_task_that_is_called_en_masse.delay(2, 2)
         some_task_that_is_called_en_masse.delay(3, 3)
         
+        # Should not be called immediately (buffering)
+        assert mock_receive_batch.call_count == 0
+        
+        # Wait 200ms - tasks should be sent after this delay
+        time.sleep(0.2)
+        
         # Should be called once with 3 tasks in order
         mock_receive_batch.assert_called_once()
         args, kwargs = mock_receive_batch.call_args
@@ -116,8 +131,8 @@ def test_partial_batch_sent_after_delay():
         # Should not be called immediately
         assert mock_receive_batch.call_count == 0
         
-        # Wait a bit (simulating time passing)
-        time.sleep(0.1)
+        # Wait 200ms (simulating time passing)
+        time.sleep(0.2)
         
         # Should be called once with 5 tasks after delay
         mock_receive_batch.assert_called_once()
@@ -131,6 +146,12 @@ def test_mixed_task_types_in_batch():
         some_task_that_is_called_en_masse.delay(1, 2)
         some_log_running_task.delay()
         some_task_that_is_called_en_masse.delay(3, 4)
+        
+        # Should not be called immediately (buffering)
+        assert mock_receive_batch.call_count == 0
+        
+        # Wait 200ms - tasks should be sent after this delay
+        time.sleep(0.2)
         
         # Should be called once with 3 tasks
         mock_receive_batch.assert_called_once()
