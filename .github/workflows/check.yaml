@@ -55,3 +55,10 @@ jobs:
           # NOTE: current rate on `main`. Bump after added implementation.
           --junitxml=test-results.xml \
           --tb=short
+
+    - name: Test Results
+      uses: EnricoMi/publish-unit-test-result-action@v2
+      with:
+        files: "test-results.xml"
+        comment_mode: always
+        compare_to_earlier_commit: true
