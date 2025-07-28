@@ -1,5 +1,5 @@
 import json
-from typing import Callable, TYPE_CHECKING
+from typing import TYPE_CHECKING, Callable
 
 if TYPE_CHECKING:
     from queue import Celeriac

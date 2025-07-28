@@ -1,7 +1,7 @@
+import logging
 
 from executor import MockTaskExecutor
 from tasks import CeleriacTask
-import logging
 
 logger = logging.getLogger(__name__)
 
