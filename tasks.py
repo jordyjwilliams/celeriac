@@ -19,7 +19,6 @@ class CeleriacTask:
     def __call__(self, *args, **kwargs):
         return self.func(*args, **kwargs)
 
-
     def serialize_call(self, *args, **kwargs) -> dict:
         base_result = {
             "task": self.name,

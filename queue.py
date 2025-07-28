@@ -12,7 +12,6 @@ class Celeriac:
         self.tasks = {}
         self.client = MockTaskExecutor()
 
-
     def _name_from_func(self, func):
         return f"{func.__module__}${func.__name__}"
 
