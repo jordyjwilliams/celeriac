@@ -13,7 +13,7 @@ This project uses [UV](https://github.com/astral-sh/uv) for dependency managemen
 
 ### Prerequisites
 
-- Python 3.13 or higher
+- Python `>=3.13`.
 - UV (install with `pip install uv`)
 
 ### Installation
