@@ -40,3 +40,6 @@ jobs:
     - name: Check Import Sorting [ruff]
       run: uv run ruff check --select I .
 
+    - name: Check Linting [ruff]
+      run: uv run ruff check .
+
