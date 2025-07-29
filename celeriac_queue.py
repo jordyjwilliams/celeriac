@@ -2,6 +2,7 @@ import logging
 import threading
 import time
 from queue import Empty, Queue
+from typing import Callable
 
 from const import BATCH_MAX_TASK_NUMBER, BATCH_MAX_WAIT_TIME_MS
 from executor import MockTaskExecutor
@@ -19,7 +20,7 @@ class Celeriac:
     def _name_from_func(self, func):
         return f"{func.__module__}${func.__name__}"
 
-    def register(self, func=None):
+    def register(self, func=None) -> Callable:
         def _decorate(function):
             name = self._name_from_func(function)
             self.tasks[name] = function
