@@ -51,8 +51,7 @@ jobs:
           --cov=. \
           --cov-report=xml \
           --cov-report=term-missing \
-          --cov-fail-under=71 \
-          # NOTE: current rate on `main`. Bump after added implementation.
+          --cov-fail-under=84 \
           --junitxml=test-results.xml \
           --tb=short
 

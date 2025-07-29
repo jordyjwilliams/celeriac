@@ -1,6 +1,7 @@
 import time
-from queue import Celeriac
 from unittest.mock import patch
+
+from celeriac_queue import Celeriac
 
 # Import the functions from main.py
 celeriac = Celeriac("test")
@@ -40,7 +41,9 @@ def test_some_task_that_is_called_en_masse():
     with patch.object(celeriac.client, "receive_batch") as mock_receive_batch:
         # Verify execute_task was called when delay() is invoked
         some_task_that_is_called_en_masse.delay(5, 10)
+        celeriac.flush()
         mock_receive_batch.assert_called_once()
+        assert celeriac.processing_complete()
 
 
 def test_some_log_running_task():
@@ -49,7 +52,9 @@ def test_some_log_running_task():
     with patch.object(celeriac.client, "receive_batch") as mock_receive_batch:
         # Verify execute_task was called when delay() is invoked
         some_log_running_task.delay()
+        celeriac.flush()
         mock_receive_batch.assert_called_once()
+        assert celeriac.processing_complete()
 
 
 # Buffering Tests - These should fail initially
@@ -59,9 +64,11 @@ def test_single_task_sent_immediately():
         some_task_that_is_called_en_masse.delay(1, 2)
 
         # Should be called immediately with a single task
+        celeriac.flush()
         mock_receive_batch.assert_called_once()
         args, kwargs = mock_receive_batch.call_args
         assert len(args[0]) == 1  # Single task in batch
+        assert celeriac.processing_complete()
 
 
 def test_multiple_tasks_buffered_until_batch_size():
@@ -86,10 +93,12 @@ def test_multiple_tasks_buffered_until_batch_size():
         some_task_that_is_called_en_masse.delay(19, 20)
 
         # Should be called twice: once with 19 tasks (after delay), once with 1 task (immediate)
+        celeriac.flush()  # Wait for tasks to be processed
         assert mock_receive_batch.call_count == 2
         calls = mock_receive_batch.call_args_list
         assert len(calls[0][0][0]) == 19  # First batch: 19 tasks (after delay)
         assert len(calls[1][0][0]) == 1  # Second batch: 1 task (immediate)
+        assert celeriac.processing_complete()
 
 
 def test_batch_size_limit_enforced():
@@ -100,11 +109,13 @@ def test_batch_size_limit_enforced():
             some_task_that_is_called_en_masse.delay(i, i + 1)
 
         # Should be called twice: once with 20 tasks, once with 5 tasks
+        celeriac.flush()  # Wait for all tasks to be processed
         assert mock_receive_batch.call_count == 2
 
         calls = mock_receive_batch.call_args_list
         assert len(calls[0][0][0]) == 20  # First batch: 20 tasks
         assert len(calls[1][0][0]) == 5  # Second batch: 5 tasks
+        assert celeriac.processing_complete()
 
 
 def test_tasks_sent_in_order():
@@ -122,6 +133,7 @@ def test_tasks_sent_in_order():
         time.sleep(0.2)
 
         # Should be called once with 3 tasks in order
+        celeriac.flush()  # Wait for tasks to be processed
         mock_receive_batch.assert_called_once()
         args, kwargs = mock_receive_batch.call_args
         batch = args[0]
@@ -130,6 +142,7 @@ def test_tasks_sent_in_order():
         assert batch[0]["args"] == (1, 1)
         assert batch[1]["args"] == (2, 2)
         assert batch[2]["args"] == (3, 3)
+        assert celeriac.processing_complete()
 
 
 def test_partial_batch_sent_after_delay():
@@ -146,9 +159,11 @@ def test_partial_batch_sent_after_delay():
         time.sleep(0.2)
 
         # Should be called once with 5 tasks after delay
+        celeriac.flush()  # Wait for tasks to be processed
         mock_receive_batch.assert_called_once()
         args, kwargs = mock_receive_batch.call_args
         assert len(args[0]) == 5
+        assert celeriac.processing_complete()
 
 
 def test_mixed_task_types_in_batch():
@@ -166,6 +181,7 @@ def test_mixed_task_types_in_batch():
         time.sleep(0.2)
 
         # Should be called once with 3 tasks
+        celeriac.flush()  # Wait for tasks to be processed
         mock_receive_batch.assert_called_once()
         args, kwargs = mock_receive_batch.call_args
         batch = args[0]
@@ -175,3 +191,4 @@ def test_mixed_task_types_in_batch():
         assert batch[0]["task"] == "test_celeriac$some_task_that_is_called_en_masse"
         assert batch[1]["task"] == "test_celeriac$some_log_running_task"
         assert batch[2]["task"] == "test_celeriac$some_task_that_is_called_en_masse"
+        assert celeriac.processing_complete()
