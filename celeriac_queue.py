@@ -143,3 +143,29 @@ class Celeriac:
                 break
 
         logger.debug("Batching: Complete. Buffer Size: %d", len(self.buffer))
+
+    def _process_buffer(self) -> None:
+        """Process the buffer based on its current state.
+
+        * Buffer empty: do nothing
+        * Sends buffer (_send_and_clear_buffer) if:
+            * Buffer full
+            * Buffer contains one task
+            * Task queue empty
+        * Otherwise: wraps _wait_and_process_batch
+        """
+        with self.buffer_lock:
+            buffer_size = len(self.buffer)
+            if buffer_size == 0:
+                return
+            if buffer_size == self.max_batch_size:
+                self._send_and_clear_buffer("Buffer Full")
+                return
+            if buffer_size == 1:
+                self._send_and_clear_buffer("Single Task")
+                return
+            if self.task_queue.empty():
+                self._send_and_clear_buffer("Queue Empty after many messages")
+                return
+        # Otherwise, wait for timeout or more tasks
+        self._wait_and_process_batch()
