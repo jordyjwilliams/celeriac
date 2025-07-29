@@ -208,3 +208,11 @@ class Celeriac:
             # NOTE: could add a retry or better mechanism here.
             logger.warning("Task queue is full, dropping task")
 
+    def processing_complete(self) -> bool:
+        """Non blocking check on processing status.
+
+        Returns:
+            bool: True if all tasks have been processed, False otherwise.
+
+        """
+        return self.task_queue.empty() and len(self.buffer) == 0
