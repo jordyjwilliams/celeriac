@@ -134,7 +134,9 @@ class Celeriac:
                 logger.debug("Batching: Queue Empty. buffer size: %d", len(self.buffer))
                 with self.buffer_lock:
                     if self.buffer:
-                        self._send_and_clear_buffer("Batching: Queue Empty: Remaining Tasks")
+                        self._send_and_clear_buffer(
+                            "Batching: Queue Empty: Remaining Tasks"
+                        )
                 break
 
         logger.debug("Batching: Complete. Buffer Size: %d", len(self.buffer))
