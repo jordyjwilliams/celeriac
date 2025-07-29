@@ -1,6 +1,7 @@
 import time
-from celeriac_queue import Celeriac
 from unittest.mock import patch
+
+from celeriac_queue import Celeriac
 
 # Import the functions from main.py
 celeriac = Celeriac("test")
