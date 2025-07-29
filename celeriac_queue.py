@@ -19,9 +19,21 @@ class Celeriac:
         self.max_batch_size = BATCH_MAX_TASK_NUMBER
         self.max_wait_seconds = BATCH_MAX_WAIT_TIME_MS / 1000.0
 
+        # Threading components
+        # Originally explored using `asyncio` and `culsans` here.
+        # Could not get this to nicely work without:
+        # * Modifying existing tests.
+        # * The methods getting overly complex to ensure thread safety.
+        # Set max queue size to 3x the batch size to allow for overflow.
+        # But without being infinitely large.
         self.task_queue = Queue(maxsize=self.max_batch_size * 3)
+        # Tasks as collected from queue. Sent when max_batch_size is reached.
+        # OR when timeout is hit.
+        # However buffer will only be cleared once max_batch_size is reached.
         self.buffer = []
+        # Avoid race-conditions.
         self.buffer_lock = threading.Lock()
+        # Event to enable the dispatcher to stop.
         self.stop_event = threading.Event()
         self.dispatcher_thread = None
 
