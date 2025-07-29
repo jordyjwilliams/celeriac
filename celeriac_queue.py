@@ -59,3 +59,17 @@ class Celeriac:
         # TODO: Implement buffering and batch sending to MockTaskExecutor
         logger.debug(f"Sending task {payload}")
         self.client.receive_batch([payload])
+    def _get_first_task(self) -> list[dict] | None:
+        """Pull the first task from the queue.
+
+        Returns:
+            list[dict] | None: The first task from the queue.
+            None if the queue is empty.
+
+        """
+        try:
+            task = self.task_queue.get_nowait()
+            logger.debug("Got first task %s", task)
+        except Empty:
+            return None
+        return task
