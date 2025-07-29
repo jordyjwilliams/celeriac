@@ -105,3 +105,41 @@ class Celeriac:
         logger.debug("Sending %s batch of %d tasks", logging_message, len(batch))
         self.client.receive_batch(batch)
 
+    def _wait_and_process_batch(self) -> None:
+        """Wait for timeout or more tasks, then process the batch."""
+        start_time = time.time()
+        deadline = start_time + self.max_wait_seconds
+        logger.debug(
+            "Batching: buffer size: %d timeout deadline: %d",
+            len(self.buffer),
+            deadline,
+        )
+
+        while len(self.buffer) < self.max_batch_size:
+            timeout = deadline - time.time()
+            if timeout <= 0:
+                self._send_and_clear_buffer("Batching: Timeout reached")
+                break
+
+            try:
+                next_task = self.task_queue.get_nowait()
+                with self.buffer_lock:
+                    self.buffer.append(next_task)
+                    logger.debug(
+                        "Batching: Added Task to batch. Buffer size: %d",
+                        len(self.buffer),
+                    )
+
+                    # During batching, if reach max buffer size. Send.
+                    if len(self.buffer) >= self.max_batch_size:
+                        self._send_full_batch()
+                        break
+
+            except Empty:
+                logger.debug("Batching: Queue Empty. buffer size: %d", len(self.buffer))
+                with self.buffer_lock:
+                    if self.buffer:
+                        self._send_and_clear_buffer("Batching: Queue Empty: Remaining Tasks")
+                break
+
+        logger.debug("Batching: Complete. Buffer Size: %d", len(self.buffer))
