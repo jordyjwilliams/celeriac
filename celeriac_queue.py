@@ -169,3 +169,19 @@ class Celeriac:
                 return
         # Otherwise, wait for timeout or more tasks
         self._wait_and_process_batch()
+
+    def _dispatcher(self) -> None:
+        """Dispatcher class logic."""
+        logger.debug("Dispatcher started")
+
+        while not self.stop_event.is_set():
+            # Get the first task (non-blocking)
+            first_task = self._get_first_task()
+            if first_task is None:
+                time.sleep(0.001)  # Brief sleep to avoid busy waiting
+                continue
+
+            # Collect tasks into buffer
+            self._collect_tasks_into_buffer(first_task)
+            # Process the buffer based on its state
+            self._process_buffer()
