@@ -226,3 +226,10 @@ class Celeriac:
             time.sleep(0.0001)  # Very short sleep to avoid busy waiting
         logger.debug("Flush completed - all tasks processed")
 
+    def shutdown(self) -> None:
+        """Shutdown the dispatcher gracefully."""
+        logger.debug("dispatcher: Shutting Down")
+        self.stop_event.set()
+        if self.dispatcher_thread and self.dispatcher_thread.is_alive():
+            self.dispatcher_thread.join(timeout=1.0)
+        logger.debug("dispatcher: Shutdown Complete")
