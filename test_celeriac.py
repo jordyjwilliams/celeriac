@@ -133,7 +133,6 @@ def test_tasks_sent_in_order():
         time.sleep(0.2)
 
         # Should be called once with 3 tasks in order
-        celeriac.flush()  # Wait for tasks to be processed
         mock_receive_batch.assert_called_once()
         args, kwargs = mock_receive_batch.call_args
         batch = args[0]
@@ -159,7 +158,6 @@ def test_partial_batch_sent_after_delay():
         time.sleep(0.2)
 
         # Should be called once with 5 tasks after delay
-        celeriac.flush()  # Wait for tasks to be processed
         mock_receive_batch.assert_called_once()
         args, kwargs = mock_receive_batch.call_args
         assert len(args[0]) == 5
@@ -181,7 +179,6 @@ def test_mixed_task_types_in_batch():
         time.sleep(0.2)
 
         # Should be called once with 3 tasks
-        celeriac.flush()  # Wait for tasks to be processed
         mock_receive_batch.assert_called_once()
         args, kwargs = mock_receive_batch.call_args
         batch = args[0]
