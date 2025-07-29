@@ -216,3 +216,13 @@ class Celeriac:
 
         """
         return self.task_queue.empty() and len(self.buffer) == 0
+
+    def flush(self) -> None:
+        """Wait for all queued tasks to be processed by the dispatcher."""
+        if self.dispatcher_thread is None or not self.dispatcher_thread.is_alive():
+            return  # Nothing to flush
+        # Wait for processing to complete using the non-blocking check
+        while not self.processing_complete():
+            time.sleep(0.0001)  # Very short sleep to avoid busy waiting
+        logger.debug("Flush completed - all tasks processed")
+
