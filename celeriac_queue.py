@@ -73,3 +73,23 @@ class Celeriac:
         except Empty:
             return None
         return task
+
+    def _collect_tasks_into_buffer(self, first_task: list[dict]) -> None:
+        """Collect tasks into the buffer.
+
+        Seperation here was to allow for single tasks to be processed immediately.
+        EG if many requests are not being sent at once.
+        """
+        # Add first task to buffer
+        with self.buffer_lock:
+            self.buffer.append(first_task)
+
+        # immediately collect all available tasks (non-blocking)
+        while len(self.buffer) < self.max_batch_size:
+            try:
+                next_task = self.task_queue.get_nowait()
+                with self.buffer_lock:
+                    self.buffer.append(next_task)
+                    logger.debug("Buffer: Added Task. Buffer Size %d", len(self.buffer))
+            except Empty:
+                break
