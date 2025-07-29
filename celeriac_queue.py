@@ -93,3 +93,15 @@ class Celeriac:
                     logger.debug("Buffer: Added Task. Buffer Size %d", len(self.buffer))
             except Empty:
                 break
+
+    def _send_and_clear_buffer(self, logging_message: str) -> None:
+        """Send buffer to client and clear.
+
+        logging_message is used to identify the reason for the send.
+        EG full, partial, single.
+        """
+        batch = self.buffer.copy()  # potentially could be improved memory wise here.
+        self.buffer.clear()
+        logger.debug("Sending %s batch of %d tasks", logging_message, len(batch))
+        self.client.receive_batch(batch)
+
