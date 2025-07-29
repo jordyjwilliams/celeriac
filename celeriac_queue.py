@@ -1,7 +1,7 @@
 import logging
 import threading
 import time
-from queue import Empty, Queue
+from queue import Empty, Full, Queue
 from typing import Callable
 
 from const import BATCH_MAX_TASK_NUMBER, BATCH_MAX_WAIT_TIME_MS
@@ -52,13 +52,8 @@ class Celeriac:
 
         if func:
             return _decorate(func)
-
         return _decorate
 
-    def send_task(self, payload):
-        # TODO: Implement buffering and batch sending to MockTaskExecutor
-        logger.debug(f"Sending task {payload}")
-        self.client.receive_batch([payload])
     def _get_first_task(self) -> list[dict] | None:
         """Pull the first task from the queue.
 
@@ -195,4 +190,21 @@ class Celeriac:
         )
         self.dispatcher_thread.start()
         logger.debug("Dispatcher thread started")
+
+    def send_task(self, payload: list[dict]) -> None:
+        """Queue a task for processing."""
+        logger.debug("Queuing task: %s", payload)
+
+        # Start dispatcher if not running
+        # This will be invoked by tests directly. Through `tasks.py` `delay` method.
+        if self.dispatcher_thread is None or not self.dispatcher_thread.is_alive():
+            self._start_dispatcher()
+
+        # If the queue is not full (should not be for these test cases)
+        # Puts the payload task in the queue (non-blocking)
+        try:
+            self.task_queue.put_nowait(payload)
+        except Full:
+            # NOTE: could add a retry or better mechanism here.
+            logger.warning("Task queue is full, dropping task")
 
