@@ -185,3 +185,14 @@ class Celeriac:
             self._collect_tasks_into_buffer(first_task)
             # Process the buffer based on its state
             self._process_buffer()
+
+    def _start_dispatcher(self) -> None:
+        """Start the dispatcher thread."""
+        self.dispatcher_thread = threading.Thread(
+            target=self._dispatcher,
+            name="celeriac-dispatcher",
+            daemon=True,
+        )
+        self.dispatcher_thread.start()
+        logger.debug("Dispatcher thread started")
+
