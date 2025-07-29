@@ -16,8 +16,16 @@ class Celeriac:
         self.name = name
         self.tasks = {}
         self.client = MockTaskExecutor()
+        self.max_batch_size = BATCH_MAX_TASK_NUMBER
+        self.max_wait_seconds = BATCH_MAX_WAIT_TIME_MS / 1000.0
 
-    def _name_from_func(self, func):
+        self.task_queue = Queue(maxsize=self.max_batch_size * 3)
+        self.buffer = []
+        self.buffer_lock = threading.Lock()
+        self.stop_event = threading.Event()
+        self.dispatcher_thread = None
+
+    def _name_from_func(self, func) -> str:
         return f"{func.__module__}${func.__name__}"
 
     def register(self, func=None) -> Callable:
