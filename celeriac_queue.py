@@ -1,11 +1,11 @@
 import logging
-import asyncio
-import culsans
+import threading
 import time
+from queue import Empty, Queue
 
+from const import BATCH_MAX_TASK_NUMBER, BATCH_MAX_WAIT_TIME_MS
 from executor import MockTaskExecutor
 from tasks import CeleriacTask
-from const import BATCH_MAX_TASK_NUMBER, BATCH_MAX_WAIT_TIME_MS
 
 logger = logging.getLogger(__name__)
 
